@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CommunityToolkit.HighPerformance;
 
 namespace advent_of_code_2023;
 class day_11: _base {  
@@ -16,19 +15,8 @@ class day_11: _base {
   public static int calc_part_1(string data) {
 
     var matrix = parse_string_to_matrix(data);
-    Span2D<char> span = matrix;
-    var empty_rows = new List<int>();
-    for (int i = 0; i < span.Height; i++) {
-      var x = span.GetRow(i);
-      if (x.ToArray().All(x => x.Equals('.'))) empty_rows.Add(i);  
-    }
-
-    var empty_cols = new List<int>();
-    for (int j = 0; j < span.Width; j++) {
-      var x = span.GetColumn(j);
-      if (x.ToArray().All(x => x.Equals('.'))) empty_cols.Add(j);
-    }
-
+    var empty_rows = get_empty_rows(matrix);
+    var empty_cols = get_empty_columns(matrix);
     var new_matrix = expand_matrix(matrix, empty_rows, empty_cols);
     var number_positions = assign_numbers(new_matrix);
 
@@ -38,6 +26,36 @@ class day_11: _base {
 
   public static int calc_part_2(string data) {
     return default(int);
+  }
+
+  /// <summary>
+  /// from a 2d array/matrix, return a list of row indices that are completely empty
+  /// </summary>
+  private static List<int> get_empty_rows(char[,] matrix) {
+    var empty_rows = new List<int>();
+    for (int i = 0; i <= matrix.GetUpperBound(0); i++) {
+      var all_cols_empty = true;
+      for (int j = 0; j <= matrix.GetUpperBound(1); j++) {
+        if (matrix[i,j] != '.') all_cols_empty = false; 
+      }
+      if (all_cols_empty) empty_rows.Add(i);
+    }
+    return empty_rows;
+  }
+
+  /// <summary>
+  /// from a 2d array/matrix, return a list of column indices that are completely empty
+  /// </summary>
+  private static List<int> get_empty_columns(char[,] matrix) {
+    var empty_cols = new List<int>();
+    for (int j = 0; j <= matrix.GetUpperBound(1); j++) {
+      var all_rows_empty = true;
+      for (int i = 0; i <= matrix.GetUpperBound(0); i++) {
+        if (matrix[i,j] != '.') all_rows_empty = false; 
+      }
+      if (all_rows_empty) empty_cols.Add(j);
+    }
+    return empty_cols;
   }
 
   /// <summary>
@@ -136,6 +154,7 @@ class day_11: _base {
 
   /// <summary>
   /// dumps the matrix to the console for debugging
+  /// unused but helpful for debugging when needed
   /// </summary>
   private static void print_matrix (char[,] matrix) {
     var output = "";
