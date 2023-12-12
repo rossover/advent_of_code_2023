@@ -4,20 +4,25 @@ namespace advent_of_code_2023;
 class day_11: _base {  
   public static void run () 
   {  
-    var data = get_data_live();
+    var data = get_data_test();
     var first = calc_part_1(data);
     var second = calc_part_2(data);
 
     Console.WriteLine($"{nameof(day_11)}\n\t1st part:\t{first}\n\t2nd part:\t{second}");
   }
 
-  // 9723824
+  //        1x would be 374 
+  //       10x would be 1030
+  //      100x would be 8410
+  //    10000x would be ?   
+  //   100000x would be ?   
+  //  1000000x would be 9723824 
   public static int calc_part_1(string data) {
 
     var matrix = parse_string_to_matrix(data);
     var empty_rows = get_empty_rows(matrix);
     var empty_cols = get_empty_columns(matrix);
-    var new_matrix = expand_matrix(matrix, empty_rows, empty_cols);
+    var new_matrix = expand_matrix(matrix, empty_rows, empty_cols, expand_factor: 99999);
     var number_positions = assign_numbers(new_matrix);
 
     return get_pairs(Enumerable.Range(1, number_positions.Count).ToArray())
@@ -36,7 +41,10 @@ class day_11: _base {
     for (int i = 0; i <= matrix.GetUpperBound(0); i++) {
       var all_cols_empty = true;
       for (int j = 0; j <= matrix.GetUpperBound(1); j++) {
-        if (matrix[i,j] != '.') all_cols_empty = false; 
+        if (matrix[i, j] == default(char)) {
+          Console.WriteLine("default char");
+        }
+        if (matrix[i, j] != '.' ) all_cols_empty = false; 
       }
       if (all_cols_empty) empty_rows.Add(i);
     }
@@ -51,7 +59,7 @@ class day_11: _base {
     for (int j = 0; j <= matrix.GetUpperBound(1); j++) {
       var all_rows_empty = true;
       for (int i = 0; i <= matrix.GetUpperBound(0); i++) {
-        if (matrix[i,j] != '.') all_rows_empty = false; 
+        if (matrix[i, j] != '.') all_rows_empty = false; 
       }
       if (all_rows_empty) empty_cols.Add(j);
     }
@@ -97,10 +105,10 @@ class day_11: _base {
   /// takes an existing matrix and expands it to include the requested empty rows and columns
   /// the empty rows and columns are added in the middle of the matrix as they are found  
   /// </summary>
-  private static char[,] expand_matrix(char[,] matrix, List<int> empty_rows, List<int> empty_cols) {
+  private static char[,] expand_matrix(char[,] matrix, List<int> empty_rows, List<int> empty_cols, int expand_factor = 1) {
     var new_matrix = new char[
-      matrix.GetUpperBound(0) + empty_rows.Count + 1, 
-      matrix.GetUpperBound(1) + empty_cols.Count + 1];
+      matrix.GetUpperBound(0) + ((empty_rows.Count * expand_factor) + 1), 
+      matrix.GetUpperBound(1) + ((empty_cols.Count * expand_factor) + 1)];
 
     var row_offset = 0;
     for (int r = 0; r <= matrix.GetUpperBound(0); r++) {
@@ -109,13 +117,13 @@ class day_11: _base {
       var col_offset = 0;
       for (int c = 0; c <= matrix.GetUpperBound(1); c++) {
         if (empty_cols.Contains(c)) col_offset++;
-        new_matrix[r+row_offset,c+col_offset] = matrix[r,c];
+        new_matrix[r + (row_offset * expand_factor), c + (col_offset * expand_factor)] = matrix[r, c];
       }
     }
 
     for (int r = 0; r <= new_matrix.GetUpperBound(0); r++) {
       for (int c = 0; c <= new_matrix.GetUpperBound(1); c++) {
-        if (new_matrix[r,c] == default(char)) new_matrix[r,c] = '.';
+        if (new_matrix[r, c] == default(char)) new_matrix[r, c] = '.';
       }
     }
 
@@ -128,7 +136,7 @@ class day_11: _base {
   private static List<KeyValuePair<int, int>> get_pairs(int[] nums) {
     var pairs = new List<KeyValuePair<int, int>>();
     for (int i = 0; i < nums.Length; i++) {
-      for (int j = i+1; j < nums.Length; j++) {
+      for (int j = i + 1; j < nums.Length; j++) {
         pairs.Add(new KeyValuePair<int,int>(nums[i], nums[j]));
       }
     }
@@ -143,8 +151,8 @@ class day_11: _base {
     var counter = 1;
     for (int i = 0; i <= matrix.GetUpperBound(0); i++) {
       for (int j = 0; j <= matrix.GetUpperBound(1); j++) {
-        if (matrix[i,j] == '#') {
-          numbers.Add(counter, new Tuple<int, int>(i,j));
+        if (matrix[i, j] == '#') {
+          numbers.Add(counter, new Tuple<int, int>(i, j));
           counter++;
         }
       }
